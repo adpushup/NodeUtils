@@ -1,0 +1,23 @@
+{
+  "name": "node-utils",
+  "version": "1.0.0",
+  "description": "node js common libs",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/adpushup/NodeUtils.git"
+  },
+  "keywords": [
+    "nodejs",
+    "utils"
+  ],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/adpushup/NodeUtils/issues"
+  },
+  "homepage": "https://github.com/adpushup/NodeUtils#readme"
+}

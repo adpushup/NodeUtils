@@ -1,2 +1,2 @@
-# JSUtils
-frequently used JavaScript utilities
+# Nodejs Utils
+frequently used Nodejs utilities
