@@ -12,13 +12,15 @@ module.exports = (config) => {
 	return {
 		getClient: function ({ accessToken, refreshToken }) {
 
-			oauth2Client.setCredentialsAsync({
-				access_token: accessToken,
-				refresh_token: refreshToken
-			})
-				.then(oauth2UpdatedClient.refreshAccessTokenAsync)
-				.then(oauth2Client.setCredentialsAsync)
-				.then(() => { oauth2Client })
+            return new Promise((resolve) => {
+                oauth2Client.setCredentials({
+                    access_token: accessToken,
+                    refresh_token: refreshToken
+                });
+                return resolve();
+            })
+            .then(() => oauth2Client.refreshAccessTokenAsync)
+            .then(() => oauth2Client)
 		},
 		getRedirectUrl: function (state) {
 			return oauth2Client.generateAuthUrl({
@@ -35,4 +37,3 @@ module.exports = (config) => {
 		}
 	}
 };
-
