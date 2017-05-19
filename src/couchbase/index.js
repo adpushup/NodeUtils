@@ -27,12 +27,12 @@ module.exports = (host, bucket, bucketPassword) => {
 		},
 		getDoc: (docId) => {
 			return connect()
-				.then(() => bucket.getAsync(docId))
+				.then((bucket) => bucket.getAsync(docId))
 				.then(res => res);
 		},
 		createDoc: (key, json, option) => {
 			return connect()
-				.then(() => {
+				.then((bucket) => {
 					json.dateCreated = +new Date();
 					return bucket.insertAsync(key, json, option);
 				});
@@ -40,10 +40,10 @@ module.exports = (host, bucket, bucketPassword) => {
 		updateDoc: function (docId, doc, cas) {
 			if (cas) {
 				return connect()
-					.then(() => bucket.replaceAsync(docId, doc, { cas: cas }));
+					.then((bucket) => bucket.replaceAsync(docId, doc, { cas: cas }));
 			}
 			return connect()
-				.then(() => bucket.upsertAsync(docId, doc));
+				.then((bucket) => bucket.upsertAsync(docId, doc));
 		}
 	};
 };
