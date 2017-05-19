@@ -14,7 +14,7 @@ module.exports = (host, bucket, bucketPassword) => {
 					if (err) {
 						return reject(err);
 					}
-					connectedBuckets[bucket] = Promise.promisifyAll(bucket);
+					connectedBuckets[bucket] = Promise.promisifyAll(connectedBuckets[bucket]);
 					return resolve(connectedBuckets[bucket]);
 				});
 			});
