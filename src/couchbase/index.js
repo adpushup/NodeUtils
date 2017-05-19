@@ -21,7 +21,7 @@ module.exports = (host, bucket, bucketPassword) => {
 		};
 
 	return {
-		queryDB = (query) => {
+		queryDB: (query) => {
 			return connect()
 				.then((bucket) => bucket.queryAsync(N1qlQuery.fromString(query)))
 		},
