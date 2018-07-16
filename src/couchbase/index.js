@@ -33,12 +33,7 @@ module.exports = (host, bucket, bucketPassword) => {
 		createDoc: (key, json, option) => {
 			return connect().then(bucket => {
 				json.dateCreated = +new Date();
-				return bucket.insertAsync(key, json, {
-					expiry: moment()
-						.add(30, 'days')
-						.valueOf(), // expiry date of 30 days will be set to every new doc by default
-					...option
-				});
+				return bucket.insertAsync(key, json, option);
 			});
 		},
 		updateDoc: function(docId, doc, cas) {
