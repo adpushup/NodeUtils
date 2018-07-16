@@ -10,7 +10,7 @@ module.exports = (host, bucket, bucketPassword) => {
 				if (connectedBuckets[bucket]) {
 					return resolve(connectedBuckets[bucket]);
 				}
-				connectedBuckets[bucket] = cluster.openBucket(bucket, bucketPassword, (err) => {
+				connectedBuckets[bucket] = cluster.openBucket(bucket, bucketPassword, err => {
 					if (err) {
 						return reject(err);
 					}
@@ -21,29 +21,28 @@ module.exports = (host, bucket, bucketPassword) => {
 		};
 
 	return {
-		queryDB: (query) => {
-			return connect()
-				.then((bucket) => bucket.queryAsync(N1qlQuery.fromString(query)))
+		queryDB: query => {
+			return connect().then(bucket => bucket.queryAsync(N1qlQuery.fromString(query)));
 		},
-		getDoc: (docId) => {
+		getDoc: docId => {
 			return connect()
-				.then((bucket) => bucket.getAsync(docId))
+				.then(bucket => bucket.getAsync(docId))
 				.then(res => res);
 		},
 		createDoc: (key, json, option) => {
-			return connect()
-				.then((bucket) => {
-					json.dateCreated = +new Date();
-					return bucket.insertAsync(key, json, option);
+			return connect().then(bucket => {
+				json.dateCreated = +new Date();
+				return bucket.insertAsync(key, json, {
+					expiry: 60 * 60 * 24 * 30, // expiry date of 30 days will be set to every new doc by default
+					...option
 				});
+			});
 		},
-		updateDoc: function (docId, doc, cas) {
+		updateDoc: function(docId, doc, cas) {
 			if (cas) {
-				return connect()
-					.then((bucket) => bucket.replaceAsync(docId, doc, { cas: cas }));
+				return connect().then(bucket => bucket.replaceAsync(docId, doc, { cas: cas }));
 			}
-			return connect()
-				.then((bucket) => bucket.upsertAsync(docId, doc));
+			return connect().then(bucket => bucket.upsertAsync(docId, doc));
 		}
 	};
 };
