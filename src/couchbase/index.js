@@ -1,5 +1,6 @@
 const couchbase = require('couchbase'),
 	Promise = require('bluebird'),
+	moment = require('moment'),
 	N1qlQuery = couchbase.N1qlQuery,
 	connectedBuckets = {};
 
@@ -33,7 +34,9 @@ module.exports = (host, bucket, bucketPassword) => {
 			return connect().then(bucket => {
 				json.dateCreated = +new Date();
 				return bucket.insertAsync(key, json, {
-					expiry: 2592000, // expiry date of 30 days will be set to every new doc by default 60 * 60 * 24 * 30
+					expiry: moment()
+						.add(30, 'days')
+						.valueOf(), // expiry date of 30 days will be set to every new doc by default
 					...option
 				});
 			});
