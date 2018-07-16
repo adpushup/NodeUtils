@@ -1,6 +1,5 @@
 const couchbase = require('couchbase'),
 	Promise = require('bluebird'),
-	moment = require('moment'),
 	N1qlQuery = couchbase.N1qlQuery,
 	connectedBuckets = {};
 
