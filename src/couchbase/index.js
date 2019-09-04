@@ -3,22 +3,29 @@ const couchbase = require('couchbase'),
 	N1qlQuery = couchbase.N1qlQuery,
 	connectedBuckets = {};
 
-module.exports = (host, bucket, bucketPassword) => {
-	const cluster = new couchbase.Cluster(host),
-		connect = () => {
-			return new Promise((resolve, reject) => {
-				if (connectedBuckets[bucket]) {
-					return resolve(connectedBuckets[bucket]);
+module.exports = (host, bucket, username, userPassword) => {
+	const cluster = new couchbase.Cluster(host, {
+		operation_timeout: 5000
+	});
+
+	// RBAC (Role Based Access Control) Authentication,
+	// See https://docs.couchbase.com/server/5.1/security/security-rbac-user-management.html
+	cluster.authenticate(username, userPassword);
+
+	const connect = () => {
+		return new Promise((resolve, reject) => {
+			if (connectedBuckets[bucket]) {
+				return resolve(connectedBuckets[bucket]);
+			}
+			connectedBuckets[bucket] = cluster.openBucket(bucket, err => {
+				if (err) {
+					return reject(err);
 				}
-				connectedBuckets[bucket] = cluster.openBucket(bucket, bucketPassword, err => {
-					if (err) {
-						return reject(err);
-					}
-					connectedBuckets[bucket] = Promise.promisifyAll(connectedBuckets[bucket]);
-					return resolve(connectedBuckets[bucket]);
-				});
+				connectedBuckets[bucket] = Promise.promisifyAll(connectedBuckets[bucket]);
+				return resolve(connectedBuckets[bucket]);
 			});
-		};
+		});
+	};
 
 	return {
 		queryDB: query => {
