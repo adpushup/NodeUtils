@@ -58,10 +58,11 @@ class Mailer {
 			.then(this.sendMail)
 			.then(() => response)
 			.catch(err => {
-				return Object.assign(response, {
+				const data = Object.assign(response, {
 					error: true,
 					message: `Mail to ${data.to} failed with error : ${err.message}`
 				});
+				return Promise.reject(new Error(data));
 			});
 	}
 }
