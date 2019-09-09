@@ -60,7 +60,8 @@ class Mailer {
 			.catch(err => {
 				const response = {
 					error: true,
-					message: `Mail to ${data.to} failed with error : ${err.message}`
+					message: `Mail to ${data.to} failed with error : ${err.message}`,
+					stack: err.stack
 				};
 				return Promise.reject(response);
 			});
