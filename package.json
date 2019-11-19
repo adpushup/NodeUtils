@@ -8,7 +8,7 @@
 	},
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/adpushup/NodeUtils.git",
+		"url": "https://github.com/adpushup/NodeUtils.git"
 	},
 	"keywords": ["nodejs", "utils"],
 	"author": "",
