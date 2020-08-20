@@ -21,15 +21,15 @@ test("cbWrapper returns API Object", async () => {
 
 // path connection object to mock couchbase connection behaviour
 test("mock couchbase connection", async () => {
-  const cbConnection = connection(
+  const { cluster, couchbase } = connection(
     "couchbase://" + config.couchBase.HOST,
     config.couchBase.DEFAULT_USER_NAME,
     config.couchBase.DEFAULT_USER_PASSWORD
   );
-  const _origOpenBucket = cbConnection.openBucket;
-  cbConnection.openBucket = function(bucket, callback) {
+  const _origOpenBucket = cluster.openBucket;
+  cluster.openBucket = function(bucket, callback) {
     console.log("patched openBucket called", bucket);
     return _origOpenBucket(bucket, callback);
   };
-  const apiInst = api({bucket: config.couchBase.DEFAULT_BUCKET, ...cbConnection});
+  const apiInst = api({bucket: config.couchBase.DEFAULT_BUCKET, ...cluster});
 });

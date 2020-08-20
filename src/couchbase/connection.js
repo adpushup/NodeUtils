@@ -12,6 +12,6 @@ module.exports = (host, username, userPassword) => {
 
   return {
     cluster,
-    couchbase,
+    couchbase
   };
 };
