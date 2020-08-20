@@ -26,10 +26,16 @@ test("mock couchbase connection", async () => {
     config.couchBase.DEFAULT_USER_NAME,
     config.couchBase.DEFAULT_USER_PASSWORD
   );
+
   const _origOpenBucket = cluster.openBucket;
-  cluster.openBucket = function(bucket, callback) {
-    console.log("patched openBucket called", bucket);
-    return _origOpenBucket(bucket, callback);
+  cluster.openBucket = function (bucket, callback) {
+    return _origOpenBucket.call(cluster, bucket, callback);
   };
-  const apiInst = api({bucket: config.couchBase.DEFAULT_BUCKET, ...cluster});
+
+  //from this api object we can create timer,check callback object is function,check different api poiting to same API object,All Api queries should be executed at a single time when promise is resolved.
+  const apiInst = api({
+    bucket: config.couchBase.DEFAULT_BUCKET,
+    cluster,
+    couchbase,
+  });
 });
