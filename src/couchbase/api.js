@@ -8,11 +8,11 @@ const connect = (bucket) => {
     return connectedBuckets[bucket];
   }
   connectedBuckets[bucket] = new Promise((resolve, reject) => {
-    connectedBuckets[bucket] = cluster.openBucket(bucket, (err) => {
+    const bucketInstance = cluster.openBucket(bucket, (err) => {
       if (err) {
         return reject(err);
       }
-      return resolve(Promise.promisifyAll(connectedBuckets[bucket]));
+      return resolve(Promise.promisifyAll(bucketInstance));
     });
   });
   return connectedBuckets[bucket];
