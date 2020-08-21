@@ -43,7 +43,7 @@ const API = {
     }
     return connect().then((bucket) => bucket.upsertAsync(docId, doc));
   },
-  couchbase
+  getCouchBaseObj: () => couchbase,
 };
 
 function init({ bucket, cluster: _cluster, couchbase: _couchbase }) {

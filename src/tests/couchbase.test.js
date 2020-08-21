@@ -1,26 +1,14 @@
 const cbWrapper = require("../couchbase");
 const connection = require("../couchbase/connection");
 const api = require("../couchbase/api");
-const _ = require("lodash");
 const config = require("../config/config");
+const {
+  isObject,
+  containsProperty,
+  areAllPropertyFunc,
+} = require("./testChecks");
 
-beforeAll((done) => {
-  done();
-});
-
-test("cbWrapper returns API Object", async () => {
-  const connectedObj = await cbWrapper(
-    "couchbase://" + config.couchBase.HOST,
-    config.couchBase.DEFAULT_BUCKET,
-    config.couchBase.DEFAULT_USER_NAME,
-    config.couchBase.DEFAULT_USER_PASSWORD
-  );
-  expect(typeof connectedObj === "object").toBe(true);
-  // also test specific methods
-});
-
-// path connection object to mock couchbase connection behaviour
-test("mock couchbase connection", async () => {
+const getMockObject = (timer) => {
   const { cluster, couchbase } = connection(
     "couchbase://" + config.couchBase.HOST,
     config.couchBase.DEFAULT_USER_NAME,
@@ -29,6 +17,7 @@ test("mock couchbase connection", async () => {
 
   const _origOpenBucket = cluster.openBucket;
   cluster.openBucket = function (bucket, callback) {
+    if (timer) timer();
     return _origOpenBucket.call(cluster, bucket, callback);
   };
 
@@ -38,4 +27,50 @@ test("mock couchbase connection", async () => {
     cluster,
     couchbase,
   });
+  return apiInst;
+};
+
+test("cbWrapper returns API Object", async () => {
+  const connectedObj = await cbWrapper(
+    "couchbase://" + config.couchBase.HOST,
+    config.couchBase.DEFAULT_BUCKET,
+    config.couchBase.DEFAULT_USER_NAME,
+    config.couchBase.DEFAULT_USER_PASSWORD
+  );
+  expect(isObject(connectedObj)).toBe(true);
+  // const { queryDB } = connectedObj;
+  // const result = await queryDB(testingQuery);
+  // console.log(result, "---------------->1");
+  // also test specific methods
+});
+
+// path connection object to mock couchbase connection behaviour  "mock couchbase connection"
+test("is mock object valid", () => {
+  const apiInst = getMockObject();
+  expect(isObject(apiInst)).toBe(true);
+  expect(
+    containsProperty(
+      apiInst,
+      "queryDB",
+      "getDoc",
+      "createDoc",
+      "updateDoc",
+      "getCouchBaseObj"
+    )
+  ).toBe(true);
+  expect(areAllPropertyFunc(apiInst)).toBe(true);
+});
+
+//test is connected to couchbase
+test("is connected to couchbase", async () => {
+  try {
+    const apiInst = getMockObject();
+    // const { queryDB } = apiInst;
+    // const result = await queryDB(testingQuery);
+    // console.log(result, "---------------->2");
+    const { getDoc } = apiInst;
+    const result = await getDoc("site::40792");
+  } catch (error) {
+    console.log(`error:${error}`);
+  }
 });
