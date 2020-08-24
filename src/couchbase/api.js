@@ -12,8 +12,12 @@ const connect = (bucket) => {
 			if (err) {
 				return reject(err);
 			}
+
+			console.log(bucketInstance, '------------>');
+
 			return resolve(Promise.promisifyAll(bucketInstance));
 		});
+		console.log(bucketInstance, '------------>2');
 	});
 	return connectedBuckets[bucket];
 };
@@ -41,6 +45,7 @@ const API = (bucket) => {
 			return connect().then((bucket) => bucket.upsertAsync(docId, doc));
 		},
 		getCouchBaseObj: () => couchbase,
+		getBucketConnection: () => connectedBuckets[bucket],
 	};
 };
 
