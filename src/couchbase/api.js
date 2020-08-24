@@ -7,17 +7,14 @@ const connect = (bucket) => {
 	if (connectedBuckets[bucket]) {
 		return connectedBuckets[bucket];
 	}
+
 	connectedBuckets[bucket] = new Promise((resolve, reject) => {
 		const bucketInstance = cluster.openBucket(bucket, (err) => {
 			if (err) {
 				return reject(err);
 			}
-
-			console.log(bucketInstance, '------------>');
-
 			return resolve(Promise.promisifyAll(bucketInstance));
 		});
-		console.log(bucketInstance, '------------>2');
 	});
 	return connectedBuckets[bucket];
 };
