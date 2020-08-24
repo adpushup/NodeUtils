@@ -22,11 +22,13 @@ const mockApiObject = (bucket, delay) => {
 	);
 
 	const _origOpenBucket = cluster.openBucket;
-	cluster.openBucket = function (bucket, callback) {
+	cluster.openBucket = function (bucket, origCallback) {
 		// handle delay cases here
 		// console.log('opening bucket');
 		if (delay) {
-			return sleep(delay).then(() => _origOpenBucket.call(cluster, bucket, callback));
+			return _origOpenBucket.call(cluster, bucket, (err) => {
+				sleep(delay).then(() => origCallback(err));
+			});
 		}
 		return _origOpenBucket.call(cluster, bucket, callback);
 	};
