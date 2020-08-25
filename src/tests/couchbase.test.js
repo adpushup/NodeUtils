@@ -8,32 +8,40 @@ beforeEach(() => {
 //cbWrapper returns API Object
 test('cbWrapper returns API Object', async () => {
 	const cbWrapper = require('../couchbase');
-	const connectedObj = await cbWrapper(
+	const apiInst = await cbWrapper(
 		'couchbase://' + config.couchBase.HOST,
 		config.couchBase.DEFAULT_BUCKET,
 		config.couchBase.DEFAULT_USER_NAME,
 		config.couchBase.DEFAULT_USER_PASSWORD
 	);
-	expect(connectedObj).toContainKeys([
+	expect(apiInst).toContainKeys([
 		'queryDB',
 		'getDoc',
 		'createDoc',
 		'updateDoc',
 		'getCouchBaseObj',
+		'getBucketConnection',
 	]);
-	for (const key in connectedObj) {
-		expect(connectedObj[key]).toBeFunction();
+	for (const key in apiInst) {
+		expect(apiInst[key]).toBeFunction();
 	}
 });
 
 // path connection object to mock couchbase connection behaviour  "mock couchbase connection"
 test('is mock object valid', () => {
 	const mockApiObject = require('./mocks/mockApiObject');
-	const apiInst = mockApiObject(config.couchBase.DEFAULT_BUCKET);
-	expect(apiInst).toBeObject();
-	expect(apiInst).toContainKeys(['queryDB', 'getDoc', 'createDoc', 'updateDoc', 'getCouchBaseObj']);
-	for (const key in apiInst) {
-		expect(apiInst[key]).toBeFunction();
+	const apiMockInst = mockApiObject(config.couchBase.DEFAULT_BUCKET);
+	expect(apiMockInst).toBeObject();
+	expect(apiMockInst).toContainKeys([
+		'queryDB',
+		'getDoc',
+		'createDoc',
+		'updateDoc',
+		'getCouchBaseObj',
+		'getBucketConnection',
+	]);
+	for (const key in apiMockInst) {
+		expect(apiMockInst[key]).toBeFunction();
 	}
 });
 
@@ -42,17 +50,21 @@ test('is connected to couchbase', async () => {
 	try {
 		const cbWrapper = require('../couchbase');
 		//use original ,seprate query
-		const connectedObj = await cbWrapper(
+		const apiInst = await cbWrapper(
 			'couchbase://' + config.couchBase.HOST,
 			config.couchBase.DEFAULT_BUCKET,
 			config.couchBase.DEFAULT_USER_NAME,
 			config.couchBase.DEFAULT_USER_PASSWORD
 		);
-		const { getDoc } = connectedObj;
-		const result = await getDoc('site::40792');
-		expect(result).not.toBeEmpty();
+
+		const dummyQuery = 'SELECT "hello" as greeting';
+		const dummyQueryResult = [{ greeting: 'hello' }];
+
+		const { queryDB } = apiInst;
+		const result = await queryDB(dummyQuery);
+		expect(result).toEqual(dummyQueryResult);
 	} catch (error) {
-		console.log(`error:${error}`);
+		throw error;
 	}
 });
 
@@ -60,21 +72,21 @@ test('is connected to couchbase', async () => {
 test('are two buckets objects same ', async () => {
 	try {
 		const cbWrapper = require('../couchbase');
-		const connectedObj = await cbWrapper(
+		const apiInst = await cbWrapper(
 			'couchbase://' + config.couchBase.HOST,
 			config.couchBase.DEFAULT_BUCKET,
 			config.couchBase.DEFAULT_USER_NAME,
 			config.couchBase.DEFAULT_USER_PASSWORD
 		);
-		const connectedObj2 = await cbWrapper(
+		const apiInst2 = await cbWrapper(
 			'couchbase://' + config.couchBase.HOST,
 			config.couchBase.DEFAULT_BUCKET,
 			config.couchBase.DEFAULT_USER_NAME,
 			config.couchBase.DEFAULT_USER_PASSWORD
 		);
-		expect(connectedObj.getBucketConnection()).toMatchObject(connectedObj2.getBucketConnection());
+		expect(apiInst.getBucketConnection()).toMatchObject(apiInst2.getBucketConnection());
 	} catch (error) {
-		console.log(`error:${error}`);
+		throw error;
 	}
 });
 
@@ -82,12 +94,165 @@ test('are two buckets objects same ', async () => {
 test('test is data query working on delay', async () => {
 	try {
 		const mockApiObject = require('./mocks/mockApiObject');
-		console.log('started delay');
-		const apiInst = mockApiObject(config.couchBase.DEFAULT_BUCKET, 4000);
-		const { getDoc } = apiInst;
-		const result = await getDoc('site::40792');
-		expect(result).not.toBeEmpty();
+		const apiMockInst = mockApiObject(config.couchBase.DEFAULT_BUCKET, 1000);
+
+		const dummyQuery = 'SELECT "hello" as greeting';
+		const dummyQueryResult = [{ greeting: 'hello' }];
+
+		const { queryDB } = apiMockInst;
+		const result = await queryDB(dummyQuery);
+		expect(result).toEqual(dummyQueryResult);
+	} catch (error) {
+		throw error;
+	}
+});
+
+//are mock methods of Api Objects valid
+test('is mocking methods of api Object valid', async () => {
+	try {
+		const mockApiObjectMethods = require('./mocks/mockApiObjectMethods');
+		//use original ,seprate query
+		const apiMockInstMethods = await mockApiObjectMethods(
+			'couchbase://' + config.couchBase.HOST,
+			config.couchBase.DEFAULT_BUCKET,
+			config.couchBase.DEFAULT_USER_NAME,
+			config.couchBase.DEFAULT_USER_PASSWORD
+		);
+		expect(apiMockInstMethods).toContainKeys(['queryDB', 'getDoc', 'createDoc', 'updateDoc']);
+		for (const key in apiMockInstMethods) {
+			expect(apiMockInstMethods[key]).toBeFunction();
+		}
 	} catch (error) {
 		console.log(`error:${error}`);
+	}
+});
+
+//is createDoc mock method valid
+test('is createDoc mock method working', async () => {
+	try {
+		const mockApiObjectMethods = require('./mocks/mockApiObjectMethods');
+		//use original ,seprate query
+		const apiMockInstMethods = await mockApiObjectMethods(
+			'couchbase://' + config.couchBase.HOST,
+			config.couchBase.DEFAULT_BUCKET,
+			config.couchBase.DEFAULT_USER_NAME,
+			config.couchBase.DEFAULT_USER_PASSWORD
+		);
+		const { createDoc } = apiMockInstMethods;
+
+		//use dummy key and json
+		const dockId = 'user:king_arthur';
+		const json = {
+			email: 'kingarthur@couchbase.com',
+			interests: ['Holy Grail', 'African Swallows'],
+		};
+
+		const result = await createDoc(dockId, json);
+		expect(createDoc).toHaveBeenCalledWith(dockId, json);
+		expect(createDoc).toHaveBeenCalledTimes(1);
+		expect(result).toMatchObject(json);
+	} catch (error) {
+		throw error;
+	}
+});
+
+//is queryDB mock method valid
+test('is queryDB mock method working', async () => {
+	try {
+		const mockApiObjectMethods = require('./mocks/mockApiObjectMethods');
+		//use original ,seprate query
+		const apiMockInstMethods = await mockApiObjectMethods(
+			'couchbase://' + config.couchBase.HOST,
+			config.couchBase.DEFAULT_BUCKET,
+			config.couchBase.DEFAULT_USER_NAME,
+			config.couchBase.DEFAULT_USER_PASSWORD
+		);
+		const { queryDB, createDoc } = apiMockInstMethods;
+
+		//first create a doc
+		const dockId = 'user:king_arthur';
+		const json = {
+			email: 'kingarthur@couchbase.com',
+			interests: ['Holy Grail', 'African Swallows'],
+		};
+		await createDoc(dockId, json);
+
+		//then query it
+		const dummyQuery = `select * from AppBucket where meta().id=${dockId}`;
+		const result = await queryDB(dummyQuery);
+		expect(queryDB).toHaveBeenCalledWith(dummyQuery);
+		expect(queryDB).toHaveBeenCalledTimes(1);
+		expect(result).toMatchObject(json);
+	} catch (error) {
+		throw error;
+	}
+});
+
+//is getDoc mock method valid
+test('is getDoc mock method working', async () => {
+	try {
+		const mockApiObjectMethods = require('./mocks/mockApiObjectMethods');
+		//use original ,seprate query
+		const apiMockInstMethods = await mockApiObjectMethods(
+			'couchbase://' + config.couchBase.HOST,
+			config.couchBase.DEFAULT_BUCKET,
+			config.couchBase.DEFAULT_USER_NAME,
+			config.couchBase.DEFAULT_USER_PASSWORD
+		);
+
+		const { createDoc, getDoc } = apiMockInstMethods;
+
+		//first create a doc
+		const dockId = 'user:king_arthur';
+		const json = {
+			email: 'kingarthur@couchbase.com',
+			interests: ['Holy Grail', 'African Swallows'],
+		};
+
+		await createDoc(dockId, json);
+
+		//then get that doc
+		const result = await getDoc(dockId);
+		expect(getDoc).toHaveBeenCalledWith(dockId);
+		expect(getDoc).toHaveBeenCalledTimes(1);
+		expect(result).not.toBeEmpty();
+	} catch (error) {
+		throw error;
+	}
+});
+
+//is updateDoc mock method valid
+test('is updateDoc mock method working', async () => {
+	try {
+		const mockApiObjectMethods = require('./mocks/mockApiObjectMethods');
+		//use original ,seprate query
+		const apiMockInstMethods = await mockApiObjectMethods(
+			'couchbase://' + config.couchBase.HOST,
+			config.couchBase.DEFAULT_BUCKET,
+			config.couchBase.DEFAULT_USER_NAME,
+			config.couchBase.DEFAULT_USER_PASSWORD
+		);
+		const { updateDoc, createDoc } = apiMockInstMethods;
+
+		//firstly create a json
+		const dockId = 'user:king_arthur';
+		const originalJson = {
+			email: 'kingarthur@couchbase.com',
+			interests: ['Holy Grail', 'African Swallows'],
+		};
+		await createDoc(dockId, originalJson);
+
+		//json data to be updated
+		const updatedJson = {
+			email: 'emailupdated@couchbase.com',
+			interests: ['Holy Grail', 'African Swallows'],
+		};
+
+		const result = await updateDoc(dockId, updatedJson);
+		expect(updateDoc).toHaveBeenCalledWith(dockId, updatedJson);
+		expect(updateDoc).toHaveBeenCalledTimes(1);
+		expect(result).toMatchObject(updatedJson);
+	} catch (error) {
+		throw error;
 	}
 });

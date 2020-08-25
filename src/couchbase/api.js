@@ -22,7 +22,9 @@ const connect = (bucket) => {
 const API = (bucket) => {
 	return {
 		queryDB: (query) => {
-			return connect(bucket).then((bucket) => bucket.queryAsync(N1qlQuery.fromString(query)));
+			return connect(bucket).then((bucket) =>
+				bucket.queryAsync(couchbase.N1qlQuery.fromString(query))
+			);
 		},
 		getDoc: (docId) => {
 			return connect(bucket)
