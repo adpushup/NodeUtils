@@ -1,5 +1,4 @@
 const config = require('../config');
-// use mock to control behaviour of couchbase, do integeration testing, check bucket connection using sdk, seprate each other test cases to be non dependent
 
 beforeEach(() => {
 	jest.resetModules();
@@ -27,7 +26,7 @@ test('cbWrapper returns API Object', async () => {
 	}
 });
 
-// path connection object to mock couchbase connection behaviour  "mock couchbase connection"
+// path connection object to mock couchbase connection behaviour  mock couchbase connection
 test('is mock object valid', () => {
 	const mockApiObject = require('./mocks/mockApiObject');
 	const apiMockInst = mockApiObject(config.couchBase.DEFAULT_BUCKET);
@@ -84,7 +83,7 @@ test('are two buckets objects same ', async () => {
 			config.couchBase.DEFAULT_USER_NAME,
 			config.couchBase.DEFAULT_USER_PASSWORD
 		);
-		expect(apiInst.getBucketConnection()).toMatchObject(apiInst2.getBucketConnection());
+		expect(apiInst.getBucketConnection()).toEqual(apiInst2.getBucketConnection());
 	} catch (error) {
 		throw error;
 	}
@@ -150,7 +149,7 @@ test('is createDoc mock method working', async () => {
 		const result = await createDoc(dockId, json);
 		expect(createDoc).toHaveBeenCalledWith(dockId, json);
 		expect(createDoc).toHaveBeenCalledTimes(1);
-		expect(result).toMatchObject(json);
+		expect(result).toEqual(expect.objectContaining(json));
 	} catch (error) {
 		throw error;
 	}
@@ -182,7 +181,7 @@ test('is queryDB mock method working', async () => {
 		const result = await queryDB(dummyQuery);
 		expect(queryDB).toHaveBeenCalledWith(dummyQuery);
 		expect(queryDB).toHaveBeenCalledTimes(1);
-		expect(result).toMatchObject(json);
+		expect(result).toEqual(expect.objectContaining(json));
 	} catch (error) {
 		throw error;
 	}
@@ -215,6 +214,7 @@ test('is getDoc mock method working', async () => {
 		const result = await getDoc(dockId);
 		expect(getDoc).toHaveBeenCalledWith(dockId);
 		expect(getDoc).toHaveBeenCalledTimes(1);
+		expect(result).toEqual(expect.objectContaining(json));
 		expect(result).not.toBeEmpty();
 	} catch (error) {
 		throw error;
@@ -232,27 +232,46 @@ test('is updateDoc mock method working', async () => {
 			config.couchBase.DEFAULT_USER_NAME,
 			config.couchBase.DEFAULT_USER_PASSWORD
 		);
-		const { updateDoc, createDoc } = apiMockInstMethods;
+		const { updateDoc } = apiMockInstMethods;
 
-		//firstly create a json
+		//if cas value is not provided than replaceAsync will happen in case of updateDoc which is same as createDoc
 		const dockId = 'user:king_arthur';
 		const originalJson = {
 			email: 'kingarthur@couchbase.com',
 			interests: ['Holy Grail', 'African Swallows'],
 		};
-		await createDoc(dockId, originalJson);
+		const createdDoc = await updateDoc(dockId, originalJson);
+		expect(createdDoc).toEqual(expect.objectContaining(originalJson));
 
-		//json data to be updated
+		//Then here we update the previous created doc using cas value provided
 		const updatedJson = {
 			email: 'emailupdated@couchbase.com',
 			interests: ['Holy Grail', 'African Swallows'],
 		};
-
-		const result = await updateDoc(dockId, updatedJson);
-		expect(updateDoc).toHaveBeenCalledWith(dockId, updatedJson);
-		expect(updateDoc).toHaveBeenCalledTimes(1);
-		expect(result).toMatchObject(updatedJson);
+		const result = await updateDoc(dockId, updatedJson, createdDoc.cas);
+		expect(updateDoc).toHaveBeenCalledWith(dockId, updatedJson, createdDoc.cas);
+		expect(result).toEqual(expect.objectContaining(updatedJson));
+		expect(updateDoc).toHaveBeenCalledTimes(2);
 	} catch (error) {
 		throw error;
 	}
 });
+
+// //is reject working properly for mock api Methods
+// test('is doc does not exist on quering not inserted data', async () => {
+// 	try {
+// 		const mockApiObjectMethods = require('./mocks/mockApiObjectMethods');
+// 		//use original ,seprate query
+// 		const apiMockInstMethods = await mockApiObjectMethods(
+// 			'couchbase://' + config.couchBase.HOST,
+// 			config.couchBase.DEFAULT_BUCKET,
+// 			config.couchBase.DEFAULT_USER_NAME,
+// 			config.couchBase.DEFAULT_USER_PASSWORD
+// 		);
+// 		const { getDoc } = apiMockInstMethods;
+// 		const result = await getDoc('something');
+// 		console.log(result);
+// 	} catch (error) {
+// 		expect(error).toBe('doc does not exist');
+// 	}
+// });
