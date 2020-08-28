@@ -24,7 +24,7 @@ module.exports = (host, bucket, username, userPassword) => {
 		createDoc: jest.fn((key, json, option) => {
 			if (fakeMockData[key]) {
 				//handle error case for data entry already exist
-				return Promise.reject('doc does not exist');
+				return Promise.reject('doc already exist');
 			}
 			//else create a new entry for that json
 			fakeMockData[key] = { ...json, dateCreated: +new Date(), cas: 1 };
