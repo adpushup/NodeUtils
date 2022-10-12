@@ -23,7 +23,8 @@ const processConfig = async (connectionString, uploadConfig) => {
         blobResponse.url,
         fileName,
         queuePublishEndpoint,
-        queue
+        queue,
+        containerName
       );
     } else {
       throw `Some Error in Blob Upload: ${blobResponse}`;
@@ -37,12 +38,13 @@ const publishToQueue = async (
   blobFileUrl,
   fileName,
   queuePublishEndpoint,
-  queue
+  queue,
+  containerName
 ) => {
   const msgBody = {
     type: 2,
-    blobFilePath: blobFileUrl,
-    fileName,
+    filePath: fileName,
+    containerName,
   };
 
   const requestSettings = {
