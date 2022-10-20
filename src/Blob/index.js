@@ -15,13 +15,22 @@ module.exports = class BlobStorage {
         this.containerClient =
           this.blobServiceClient.getContainerClient(containerName);
         await this.containerClient.createIfNotExists();
-        return await this.uploadBlob(fileName, JSON.stringify(data)).then((response) =>
-          this.validateOperation(response.uploadResponse, "Upload", () => {
-            return {
+        if (fileName.startsWith("/")) {
+          fileName = fileName.substring(1);
+        }
+        if (typeof data !== "string" && !Buffer.isBuffer(data)) {
+          data = JSON.stringify(data);
+        }
+        return await this.uploadBlob(fileName, data).then((response) => {
+          if (response.error) throw response.error;
+          return this.validateOperation(
+            response.uploadResponse,
+            "Upload",
+            () => ({
               url: response.blobUrl,
-            };
-          })
-        ); //Creates a new block blob, or updates the content of an existing block blob;
+            })
+          );
+        }); //Creates a new block blob, or updates the content of an existing block blob;
       } else {
         throw "Please initialize the service before using!";
       }
@@ -71,7 +80,7 @@ module.exports = class BlobStorage {
       if (this.blobServiceClient) {
         this.containerClient =
           this.blobServiceClient.getContainerClient(containerName);
-
+        if (fileName.startsWith("/")) fileName = fileName.substring(1);
         return await this.downloadBlob(fileName, offset).then((response) =>
           this.validateOperation(response, "Download", () =>
             this.streamToText(response.readableStreamBody)
@@ -109,6 +118,8 @@ module.exports = class BlobStorage {
       if (this.blobServiceClient) {
         this.containerClient =
           this.blobServiceClient.getContainerClient(containerName);
+        if (fileName.startsWith("/")) fileName = fileName.substring(1);
+
         const blockBlobClient =
           this.containerClient.getBlockBlobClient(fileName);
         return await blockBlobClient
@@ -128,6 +139,8 @@ module.exports = class BlobStorage {
     const processConfigAndUpload = async (config) => {
       const { containerName, fileName, data } = config;
       if (containerName && fileName && data) {
+        //ignoring the / in beginning if it is present
+        if (fileName.startsWith("/")) fileName = fileName.substring(1);
         return await this.uploadToStorageContainer(
           containerName,
           data,
