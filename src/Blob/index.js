@@ -154,8 +154,9 @@ module.exports = class BlobStorage {
     };
 
     if (Array.isArray(blobConfig)) {
-      if (!blobConfig.length)
+      if (!blobConfig.length) {
         return { error: "Please provide valid array of required config" };
+      }
       let results = [];
       for (let config of blobConfig) {
         let result = await processConfigAndUpload(config);
