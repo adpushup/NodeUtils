@@ -22,7 +22,9 @@ module.exports = class BlobStorage {
           data = JSON.stringify(data);
         }
         return await this.uploadBlob(fileName, data).then((response) => {
-          if (response.error) throw response.error;
+          if (response.error) {
+            throw new Error(response.error);
+          }
           return this.validateOperation(
             response.uploadResponse,
             "Upload",
@@ -32,12 +34,10 @@ module.exports = class BlobStorage {
           );
         }); //Creates a new block blob, or updates the content of an existing block blob;
       } else {
-        throw "Please initialize the service before using!";
+        throw new Error("Please initialize the service before using!");
       }
     } catch (error) {
-      return {
-        error,
-      };
+      return this.handleError(error);
     }
   }
 
@@ -50,12 +50,10 @@ module.exports = class BlobStorage {
         const blobUrl = blockBlobClient.url;
         return { uploadResponse, blobUrl };
       } else {
-        throw "Please initialize container before uploading!";
+        throw new Error("Please initialize container before uploading!");
       }
     } catch (error) {
-      return {
-        error,
-      };
+      return this.handleError(error);
     }
   }
 
@@ -66,12 +64,10 @@ module.exports = class BlobStorage {
           this.containerClient.getBlockBlobClient(fileName);
         return await blockBlobClient.download(offset);
       } else {
-        throw "Please initialize the container before downloading!";
+        throw new Error("Please initialize the container before downloading!");
       }
     } catch (error) {
-      return {
-        error,
-      };
+      this.handleError(error);
     }
   }
 
@@ -87,12 +83,10 @@ module.exports = class BlobStorage {
           )
         );
       } else {
-        throw "Please initialize the service before using";
+        throw new Error("Please initialize the service before using");
       }
     } catch (error) {
-      return {
-        error,
-      };
+      this.handleError(error);
     }
   }
 
@@ -108,9 +102,11 @@ module.exports = class BlobStorage {
   async validateOperation(response, operation, callback = false) {
     if (response.succeeded || !(response.errorCode || response.error))
       return callback ? await callback() : true;
-    throw `${operation} operation failed due to some reason: ${
-      response.errorCode || response.error
-    }`;
+    throw new Error(
+      `${operation} operation failed due to some reason: ${
+        response.errorCode || response.error
+      }`
+    );
   }
 
   async deleteBlobFromContainer(containerName, fileName) {
@@ -126,12 +122,10 @@ module.exports = class BlobStorage {
           .deleteIfExists()
           .then((response) => this.validateOperation(response, "Delete"));
       } else {
-        throw "Please initialize the service before using";
+        throw new Error("Please initialize the service before using");
       }
     } catch (error) {
-      return {
-        error,
-      };
+      this.handleError(error);
     }
   }
 
@@ -147,24 +141,31 @@ module.exports = class BlobStorage {
           fileName
         );
       } else {
-        return {
-          error: "containerName or fileName or data not found in config!",
-        };
+        throw new Error(
+          "containerName or fileName or data not found in config!"
+        );
       }
     };
-
-    if (Array.isArray(blobConfig)) {
-      if (!blobConfig.length) {
-        return { error: "Please provide valid array of required config" };
+    try {
+      if (Array.isArray(blobConfig)) {
+        if (!blobConfig.length) {
+          return { error: "Please provide valid array of required config" };
+        }
+        let results = [];
+        for (let config of blobConfig) {
+          let result = await processConfigAndUpload(config);
+          results.push({ result, config });
+        }
+        return results;
+      } else {
+        return await processConfigAndUpload(blobConfig);
       }
-      let results = [];
-      for (let config of blobConfig) {
-        let result = await processConfigAndUpload(config);
-        results.push({ result, config });
-      }
-      return results;
-    } else {
-      return await processConfigAndUpload(blobConfig);
+    } catch (error) {
+      return this.handleError(error);
     }
+  }
+
+  handleError(error) {
+    return { error: error.message, stack: error.stack };
   }
 };

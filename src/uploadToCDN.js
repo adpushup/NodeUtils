@@ -6,9 +6,9 @@ const processConfig = async (connectionString, uploadConfig) => {
     const { containerName, fileName, data, queuePublishEndpoint, queue } =
       uploadConfig;
     if (!(containerName && fileName && data && queuePublishEndpoint && queue)) {
-      return {
-        error: `containerName or fileName or data or queuePublishEndpoint or queue Not found`,
-      };
+      throw new Error(
+        `containerName or fileName or data or queuePublishEndpoint or queue Not found`
+      );
     }
 
     const blob = new BlobStorage(connectionString);
@@ -27,10 +27,13 @@ const processConfig = async (connectionString, uploadConfig) => {
         containerName
       );
     } else {
-      throw `Some Error in Blob Upload: ${blobResponse}`;
+      throw new Error(`Some Error in Blob Upload: ${blobResponse}`);
     }
   } catch (error) {
-    return { error: `Some Error in function : ${error}` };
+    return {
+      error: `Some Error in function : ${error.message}`,
+      stack: error.stack,
+    };
   }
 };
 
@@ -63,7 +66,10 @@ const publishToQueue = async (
   return await axios(requestSettings)
     .then(() => blobFileUrl)
     .catch((error) => {
-      return { error: `failed to push message to queue: ${error}` };
+      return {
+        error: `failed to push message to queue: ${error.message}`,
+        stack: error.stack,
+      };
     });
 };
 
