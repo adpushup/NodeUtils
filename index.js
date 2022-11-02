@@ -3,7 +3,9 @@ const utils = require('./src/utils'),
 	promiseWhile = require('./src/promiseWhile'),
 	couchbaseService = require('./src/couchbase/index'),
 	mailService = require('./src/mailService/index'),
-	adsenseService = require('./src/adsenseApi/adsenseService');
+	adsenseService = require('./src/adsenseApi/adsenseService'),
+	blobService = require('./src/Blob'),
+	uploadToCDN = require('./src/uploadToCDN');
 
 module.exports = {
 	utils,
@@ -11,5 +13,7 @@ module.exports = {
 	promiseWhile,
 	adsenseService,
 	couchbaseService,
-	mailService
+	mailService,
+	blobService,
+	uploadToCDN
 }

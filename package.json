@@ -1,6 +1,6 @@
 {
 	"name": "node-utils",
-	"version": "1.3.3",
+	"version": "1.4.0",
 	"description": "node js common libs",
 	"main": "index.js",
 	"scripts": {
@@ -10,7 +10,10 @@
 		"type": "git",
 		"url": "https://github.com/adpushup/NodeUtils.git"
 	},
-	"keywords": ["nodejs", "utils"],
+	"keywords": [
+		"nodejs",
+		"utils"
+	],
 	"author": "",
 	"license": "ISC",
 	"bugs": {
@@ -18,6 +21,8 @@
 	},
 	"homepage": "https://github.com/adpushup/NodeUtils#readme",
 	"dependencies": {
+		"@azure/storage-blob": "^12.11.0",
+		"axios": "^1.1.2",
 		"bluebird": "^3.5.5",
 		"couchbase": "2.6.12",
 		"crypto-js": "^3.1.9-1",
