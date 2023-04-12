@@ -21,7 +21,7 @@
 	},
 	"homepage": "https://github.com/adpushup/NodeUtils#readme",
 	"dependencies": {
-		"@azure/storage-blob": "^12.11.0",
+		"@azure/storage-blob": "^12.13.0",
 		"axios": "^1.1.2",
 		"bluebird": "^3.5.5",
 		"couchbase": "2.6.12",
