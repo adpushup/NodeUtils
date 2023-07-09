@@ -24,10 +24,10 @@
 		"@azure/storage-blob": "^12.11.0",
 		"axios": "^1.1.2",
 		"bluebird": "^3.5.5",
-		"couchbase": "2.6.12",
+		"couchbase": "4.2.4",
 		"crypto-js": "^3.1.9-1",
 		"emailjs": "^1.0.12",
-		"googleapis": "^19.0.0",
+		"googleapis": "^120.0.0",
 		"lodash": "^4.17.15",
 		"moment": "^2.24.0"
 	}
